@@ -1,0 +1,14 @@
+#+TITLE: Learning Purescript and Halogen
+
+* Setup
+
+nodePackages.parcel-bundler
+https://github.com/JordanMartinez/learn-halogen/blob/latestRelease/spago.dhall
+
+* bootstrap project
+
+#+begin_src shell
+spago init
+#+end_src
+
+* Follow static example
