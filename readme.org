@@ -12,10 +12,18 @@ spago init
 
 * Hello World
 #+begin_src purescript
+import Effect.Console (log)
 main = do
  log =  "🍝"
 #+end_src
 
+[[https://pursuit.purescript.org/packages/purescript-console/4.4.0/docs/Effect.Console#v:log][Effect.Console.log]]
+log :: String -> Effect Unit
+
+* Top level verbs
+https://github.com/purescript-halogen/purescript-halogen/blob/master/docs/1%20-%20Introduction.md
+A Halogen application consists of a tree of components.
+Each component is a self-contained unit test has its own state
 * Follow static example
 
 #+begin_src purescript
@@ -75,8 +83,8 @@ main = launchAff_ do
 [[https://pursuit.purescript.org/packages/purescript-halogen/4.0.0/docs/Halogen#t:ComponentSlot][ComponentHTML]]
 
 #+begin_src purescript
-type ComponentHTML f = HTML Void (f Unit)
-newtype HTML p i
+type ComponentHTML actions slots m  = HTML (ComponentSlot HTML slots m action) action
+newtype HTML w i = HTML (VDom.VDom (Array (Prop (Input i))) w)
 #+end_src
 
 A synonym for the output type of a render function, for a chidless components that render HTML.
