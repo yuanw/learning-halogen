@@ -23,7 +23,20 @@ log :: String -> Effect Unit
 * Top level verbs
 https://github.com/purescript-halogen/purescript-halogen/blob/master/docs/1%20-%20Introduction.md
 A Halogen application consists of a tree of components.
-Each component is a self-contained unit test has its own state
+Each component is a self-contained unit test has its own state, and re-render
+when state changes.
+
+component's state is changed by the component evaluting inputs known as queries,
+or by evaluting actions
+
+Each componet defive 5 types which govern how it operates:
+
+1. State
+2. Query - the external message which may be send to the component.
+3. Action
+4. Message
+5. Input
+
 * Follow static example
 
 #+begin_src purescript
@@ -63,7 +76,7 @@ staticHtml =
       [ HH.text "You can click me, but I don't do anything." ]
     ]
 
--- | Wraps Halogen types cleanly, so that one gets very clear compiler errors
+-- | Wraps Halogen types cleanly, so that one gets clear compiler errors
 staticComponent :: StaticHTML
                 -> H.Component HH.HTML (Const Unit) Unit Void Aff
 staticComponent renderHtml =
