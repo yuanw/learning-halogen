@@ -9,8 +9,9 @@ https://github.com/JordanMartinez/learn-halogen/blob/latestRelease/spago.dhall
 #+begin_src shell
 spago init
 #+end_src
+** TODO figure out how to use spago2nix
 
-* Hello World
+* Hello World - Purescript
 #+begin_src purescript
 import Effect.Console (log)
 main = do
@@ -37,6 +38,165 @@ Each componet defive 5 types which govern how it operates:
 4. Message
 5. Input
 
+What is a Component ?
+#+begin_src purescript
+data Component (surface :: Type -> Type -> Type) (query :: Type -> Type) (input :: Type) (output :: Type) (m :: Type -> Type)
+#+end_src_
+
+So `Component` holds
+
+- surface is the type that will be rendered by the component, usually HTML
+- query is the query algebra; the requests that can be made of the component
+- input is the input value that will be received when the parent of this component renders
+- output is the type of messages the component can raise
+- m is the effect monad used during evaluation
+
+What is HTML in Halogen ?
+
+Halogen.HTML.Core.html#t:HTML
+#+begin_src purescript
+newtype HTML w i
+#+end_src
+
+/html/Halogen.html#v:mkComponent
+
+mkComponent :: ComponentSpec -> Component
+file:///Users/yuan/workspace/learning-halogen/generated-docs/html/Halogen.Component.html#t:ComponentSpec
+
+** Real Hello World example
+
+#+begin_src purescript
+module Main where
+
+
+-- Imports for lesson
+import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
+
+
+-- Imports for scaffolding
+import Prelude
+
+import Data.Const (Const)
+import Data.Maybe (Maybe(..))
+
+import Effect (Effect)
+import Effect.Aff (Aff, launchAff_)
+import Halogen as H
+import Halogen.Aff (awaitBody)
+import Halogen.VDom.Driver (runUI)
+
+type State = {enabled :: Boolean}
+
+data Action = Toggle
+
+component :: forall q i o m. H.Component HH.HTML q i o m
+component =
+  H.mkComponent
+     { initialState
+     , render
+     , eval: H.mkEval $ H.defaultEval {handleAction = handleAction}
+     }
+
+
+initialState :: forall i. i -> State
+initialState _ = {enabled: false}
+
+render :: forall m. State -> H.ComponentHTML Action () m
+render state =
+  let
+    label = if state.enabled then "On" else "Off"
+  in
+   HH.button
+    [ HP.title label
+    , HE.onClick \_ -> Just Toggle
+    ]
+    [HH.text label]
+
+
+handleAction :: forall o m. Action -> H.HalogenM State Action () o m Unit
+handleAction = case _ of
+  Toggle ->
+    H.modify_ \st -> st {enabled = not st.enabled}
+
+main :: Effect Unit
+main = launchAff_ do
+  body <- awaitBody
+  --runUI (staticComponent staticHtml) unit body
+  runUI component unit body
+#+end_src
+
+** Handle Effect
+https://github.com/purescript/purescript-random
+spago install random
+
+#+begin_src purescript
+module Main where
+
+
+-- Imports for lesson
+
+import Prelude
+
+import Data.Maybe (Maybe(..), maybe)
+import Effect (Effect)
+import Effect.Class (class MonadEffect)
+import Effect.Random (randomInt)
+import Halogen as H
+import Halogen.Aff as HA
+import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
+import Halogen.VDom.Driver (runUI)
+
+
+type State = Maybe Int
+
+data Action = Regenerate
+
+component :: forall q i o m. MonadEffect m =>  H.Component HH.HTML q i o m
+component =
+  H.mkComponent
+     { initialState
+     , render
+     , eval: H.mkEval $ H.defaultEval {handleAction = handleAction}
+     }
+
+
+initialState :: forall i. i -> State
+initialState = const Nothing
+
+render :: forall m. State -> H.ComponentHTML Action () m
+render state =
+  let
+    value = maybe "No number generated yet" show state
+  in
+    HH.div_ $
+      [ HH.h1_ [ HH.text "Random number" ]
+      , HH.p_ [ HH.text ("Current value: " <> value) ]
+      , HH.button
+          [ HE.onClick \_ -> Just Regenerate ]
+          [ HH.text "Generate new number" ]
+      ]
+
+
+
+
+handleAction :: forall o m. MonadEffect m => Action -> H.HalogenM State Action () o m Unit
+handleAction = case _ of
+  Regenerate -> do
+    newNumber <- H.liftEffect $ randomInt 0 100
+    H.put (Just newNumber)
+
+
+
+main :: Effect Unit
+main = HA.runHalogenAff do
+  --log "🍝"
+  body <- HA.awaitBody
+  --runUI (staticComponent staticHtml) unit body
+  runUI component unit body
+#+end_src
 * Follow static example
 
 #+begin_src purescript
